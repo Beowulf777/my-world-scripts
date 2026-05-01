@@ -1,0 +1,526 @@
+{{!-- ============================================================
+     character-sheet.hbs
+     CS Character Sheet — Foundry VTT v11.315
+     ============================================================ --}}
+
+<form class="cs-sheet flexcol">
+
+  {{!-- ── Header ───────────────────────────────────────────── --}}
+  {{#if noData}}
+  <div style="padding:20px;font-family:var(--font-primary);color:#c0392b;background:#fff5f5;border:1px solid #e74c3c;border-radius:4px;margin:10px;">
+    <b>⚠ No character data found on this actor.</b><br>
+    Run the <b>Character Sheet Migration Macro</b> as GM to copy data from the C.S journal pages to actors.
+  </div>
+  {{else}}
+  <header class="cs-header">
+    <h1>{{d.characterName}}</h1>
+    <div class="cs-header-meta">
+      <span><b>Player:</b> {{d.playerName}}</span>
+      <span><b>Class:</b> {{d.characterClass}}</span>
+      <span><b>Rank:</b> {{d.rank}}</span>
+      <span><b>Soul Trait:</b> {{d.soulTrait}}</span>
+      <span><b>Affinities:</b> {{d.element1}} &amp; {{d.element2}}</span>
+      <span><b>PL:</b> {{csNum pl.total}}</span>
+    </div>
+  </header>
+
+  {{!-- ── Tab Navigation ─────────────────────────────────────── --}}
+  <nav class="tabs" data-group="primary">
+    <a class="item active" data-tab="stats">📊 Stats</a>
+    <a class="item" data-tab="equipment">⚔️ Equipment</a>
+    <a class="item" data-tab="tags">🏷️ Tags</a>
+    <a class="item" data-tab="elements">✨ Elements</a>
+    <a class="item" data-tab="souls">👻 Souls</a>
+    {{#if hasPact}}<a class="item" data-tab="pact">😈 Pact</a>{{/if}}
+  </nav>
+
+  {{!-- ── Tab Content ──────────────────────────────────────────── --}}
+  <section class="sheet-body">
+
+    {{!-- ════════════════════════════════════════════════════════
+         STATS TAB
+         ════════════════════════════════════════════════════════ --}}
+    <div class="tab active" data-tab="stats" data-group="primary">
+
+      <div class="cs-section">⚡ Power Level: {{csNum pl.total}}</div>
+      <table>
+        <tbody>
+          <tr>
+            <td>Base PL</td>
+            <td class="cs-bold">{{csNum d.basePowerLevel}}</td>
+            <td>Bonus PL (manual)</td>
+            <td>{{csNum d.bonusPowerLevel}}</td>
+          </tr>
+          <tr>
+            <td>Tag Bonus</td>
+            <td>+{{csNum pl.tagBonus}}</td>
+            <td>Weapon Bonus</td>
+            <td>+{{csNum pl.weaponBonus}}</td>
+          </tr>
+          <tr>
+            <td>Armor Bonus</td>
+            <td>+{{csNum pl.armorBonus}}</td>
+            <td>Accessory Bonus</td>
+            <td>+{{csNum pl.accBonus}}</td>
+          </tr>
+          <tr>
+            <td>Soul Set Bonus</td>
+            <td>+{{csNum pl.soulBonus}} ({{pl.fullSets}} sets × 500)</td>
+            <td>Total Bonus PL</td>
+            <td>{{csNum pl.bonusPL}}</td>
+          </tr>
+          <tr>
+            <td>Rank Mult ({{d.rank}})</td>
+            <td>×{{pl.rankMult}}</td>
+            <td>Additional Mults</td>
+            <td>= ×{{pl.addMult}}</td>
+          </tr>
+          <tr>
+            <td>Total Multiplier</td>
+            <td>×{{pl.totalMult}}</td>
+            <td>Ascension Mult</td>
+            <td>×{{pl.ascMult}} (Asc {{d.ascension}}/2 + 1)</td>
+          </tr>
+          <tr>
+            <td>Attr Bonus</td>
+            <td>+{{csNum pl.attrBonus}}</td>
+            <td>Stat Bonus</td>
+            <td>+{{csNum pl.statBonus}}</td>
+          </tr>
+          <tr class="cs-total">
+            <td colspan="2"><b>Formula: ((Base+Bonus) × Mult + Attr + Stat) × AscMult</b></td>
+            <td>TOTAL PL</td>
+            <td class="cs-bold" style="font-size:1.1em;">{{csNum pl.total}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="cs-section">📊 Core Stats</div>
+      <div class="cs-stat-grid">
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">❤️ HP</span>
+          <span class="cs-stat-value">{{csNum hpCur}} / {{csNum hpMax}}</span>
+          <div class="cs-stat-bar">{{{csBar hpCur hpMax "#c0392b" "8px"}}}</div>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">💧 MP</span>
+          <span class="cs-stat-value">{{csNum mpCur}} / {{csNum mpMax}}</span>
+          <div class="cs-stat-bar">{{{csBar mpCur mpMax "#2980b9" "8px"}}}</div>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">🔄 Sync</span>
+          <span class="cs-stat-value">{{csNum syncCur}} / {{csNum syncMax}}</span>
+          <div class="cs-stat-bar">{{{csBar syncCur syncMax "#8e44ad" "8px"}}}</div>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">🌀 Ascension</span>
+          <span class="cs-stat-value">{{d.ascension}} / {{ascMax}}</span>
+          <div class="cs-stat-bar">{{{csBar d.ascension ascMax "#d35400" "8px"}}}</div>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">💪 Physical</span>
+          <span class="cs-stat-value">{{d.physical}} <small style="color:#888;">(cap 20)</small></span>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">🗣️ Social</span>
+          <span class="cs-stat-value">{{d.social}} <small style="color:#888;">(cap 20)</small></span>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">🧠 Mental</span>
+          <span class="cs-stat-value">{{d.mental}} <small style="color:#888;">(cap 20)</small></span>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">🍀 Luck</span>
+          <span class="cs-stat-value">{{d.luck}} / {{CS_LUCK_MAX}}</span>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">⬆️ Upgrade Points</span>
+          <span class="cs-stat-value">{{csNum d.upgradePoints}}</span>
+        </div>
+        <div class="cs-stat-box">
+          <span class="cs-stat-label">📚 Knowledge Points</span>
+          <span class="cs-stat-value">{{csNum d.knowledgePoints}}</span>
+        </div>
+      </div>
+
+      <div class="cs-section">🌀 Ascension Points</div>
+      <p style="margin:0 0 4px 0;font-size:0.9em;">
+        {{csNum ascPts}} / {{csNum ascPtsCap}}
+        {{#if (gt ascPtsCap 100000)}}<small style="color:#856404;"> (😈 Pact Bane: cap raised)</small>{{/if}}
+      </p>
+      {{{csBar ascPts ascPtsCap "#7a00cc" "14px"}}}
+
+      {{#if hasSpecialEnchs}}
+      <div class="cs-section">✨ Special Enchantments</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+        {{#each specialEnchs}}
+          <span class="cs-special-ench">{{this}}</span>
+        {{/each}}
+      </div>
+      {{/if}}
+
+    </div>{{!-- /stats tab --}}
+
+    {{!-- ════════════════════════════════════════════════════════
+         EQUIPMENT TAB
+         ════════════════════════════════════════════════════════ --}}
+    <div class="tab" data-tab="equipment" data-group="primary">
+
+      <div class="cs-section">⚔️ Weapon</div>
+      <table>
+        <tbody>
+          <tr>
+            <td class="cs-bold">Name</td>
+            <td>{{d.weaponName}}</td>
+            <td class="cs-bold">Class</td>
+            <td>{{d.weaponClass}}</td>
+          </tr>
+          <tr>
+            <td class="cs-bold">Metal</td>
+            <td>{{weaponMetal}} (Tier {{csTierOf weaponMetal}})</td>
+            <td class="cs-bold">PL Bonus</td>
+            <td>+{{mul (csTierOf weaponMetal) 10}}</td>
+          </tr>
+          <tr>
+            <td class="cs-bold">Armor Ench Slots</td>
+            <td>{{weapArmorSlots}}</td>
+            <td class="cs-bold">Weapon Ench Slots</td>
+            <td>3 (fixed)</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>Weapon Enchant Slot</th><th>Enchantment</th></tr></thead>
+        <tbody>
+          {{#each weaponEnchantments}}
+          <tr>
+            <td>Slot {{this.index}}</td>
+            <td>
+              {{#if this.filled}}
+                <span class="cs-ench cs-ench-filled">{{this.value}}</span>
+              {{else}}
+                <span class="cs-ench cs-ench-empty">Empty</span>
+              {{/if}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <div class="cs-section">🛡️ Armor <small style="font-weight:normal;">({{armorEnchTotal}} enchant slots | +{{csNum pl.armorBonus}} PL)</small></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Slot</th><th>Name</th><th>Material</th>
+            <th class="cs-center">⚡ Slots</th><th>Enchantments</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each armor}}
+          <tr>
+            <td>{{this.slot}}</td>
+            <td>{{this.name}}</td>
+            <td>{{this.material}} (T{{this.tier}})</td>
+            <td class="cs-center">{{this.slots}}</td>
+            <td>
+              {{#if this.hasSlots}}
+                {{#each this.enchantments}}
+                  {{#if this.filled}}
+                    <span class="cs-ench cs-ench-filled">{{this.value}}</span>
+                  {{else}}
+                    <span class="cs-ench cs-ench-empty">Slot {{this.index}}: Empty</span>
+                  {{/if}}
+                {{/each}}
+              {{else}}
+                <span class="cs-no-slots">No enchantment slots</span>
+              {{/if}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <div class="cs-section">💍 Accessories <small style="font-weight:normal;">({{accEnchTotal}} enchant slots | +{{csNum pl.accBonus}} PL)</small></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Slot</th><th>Name</th><th>Material</th>
+            <th class="cs-center">⚡ Slots</th><th>Enchantments</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each accessories}}
+          <tr>
+            <td>{{this.slot}}</td>
+            <td>{{this.name}}</td>
+            <td>{{this.material}} (T{{this.tier}})</td>
+            <td class="cs-center">{{this.slots}}</td>
+            <td>
+              {{#if this.hasSlots}}
+                {{#each this.enchantments}}
+                  {{#if this.filled}}
+                    <span class="cs-ench cs-ench-filled">{{this.value}}</span>
+                  {{else}}
+                    <span class="cs-ench cs-ench-empty">Slot {{this.index}}: Empty</span>
+                  {{/if}}
+                {{/each}}
+              {{else}}
+                <span class="cs-no-slots">No enchantment slots</span>
+              {{/if}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <p style="font-size:0.88em;color:#555;">
+        Total Enchant Slots: <b>{{totalEnchSlots}}</b>
+        (Weapon armor: {{weapArmorSlots}} + Armor: {{armorEnchTotal}} + Accessories: {{accEnchTotal}}) + 3 weapon enchant slots
+      </p>
+
+      <div class="cs-section">⛏️ Mining Laser <small style="font-weight:normal;">({{laserEnchSlots}} enchant slot{{#unless (eq laserEnchSlots 1)}}s{{/unless}})</small></div>
+      <table>
+        <tbody>
+          <tr>
+            <td class="cs-bold">Type</td>
+            <td>{{laserMetal}} (Tier {{laserT}})</td>
+            <td class="cs-bold">Durability</td>
+            <td>
+              {{laserCur}} / {{laserMax}}
+              &nbsp;{{{csBar laserCur laserMax "#7f8c8d" "8px"}}}
+              {{#if laserStarterBoost}}<br><small style="color:#666;">(×3 starter boost applied to max)</small>{{/if}}
+            </td>
+          </tr>
+          <tr>
+            <td class="cs-bold">Enchantments</td>
+            <td colspan="3">
+              {{#if (gt laserEnchSlots 0)}}
+                {{#each laserEnchs}}
+                  {{#if this.filled}}
+                    <span class="cs-ench cs-ench-filled">{{this.value}}</span>
+                  {{else}}
+                    <span class="cs-ench cs-ench-empty">Slot {{this.index}}: Empty</span>
+                  {{/if}}
+                {{/each}}
+              {{else}}
+                <span class="cs-no-slots">No enchantment slots</span>
+              {{/if}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>{{!-- /equipment tab --}}
+
+    {{!-- ════════════════════════════════════════════════════════
+         TAGS TAB
+         ════════════════════════════════════════════════════════ --}}
+    <div class="tab" data-tab="tags" data-group="primary">
+
+      <div class="cs-section">🏷️ Skill Tags</div>
+      {{#if (any regularTags)}}
+      <table>
+        <thead>
+          <tr>
+            <th>Tag Name</th><th>Mastery</th>
+            <th class="cs-center">Level</th><th class="cs-right">PL Bonus</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each regularTags}}
+          <tr>
+            <td>{{this.name}}{{#if this.isSpecial}} ★{{/if}}</td>
+            <td>{{this.mastery}}</td>
+            <td class="cs-center">{{this.level}}</td>
+            <td class="cs-right">+{{this.plBonus}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <div class="cs-note cs-note-info">No regular tags assigned — run the Tag Selector macro.</div>
+      {{/if}}
+
+      {{#if (any ascendedTags)}}
+      <div class="cs-section">✨ Ascended Tags</div>
+      <table>
+        <thead>
+          <tr>
+            <th colspan="2">Ascended Tag / Condensed Tags</th>
+            <th class="cs-center">Tier</th><th class="cs-right">PL Bonus</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each ascendedTags}}
+          <tr class="cs-asc-tag">
+            <td colspan="2">
+              <b style="color:#7a00cc;">✨ {{this.name}}</b>
+              <span style="font-size:0.8em;color:#888;margin-left:6px;">({{this.filled}}/5 tags condensed)</span>
+              <div class="cs-condensed-list">
+                {{#each this.condensedTags}}
+                  <span class="cs-condensed-tag">{{this}}</span>
+                {{/each}}
+              </div>
+            </td>
+            <td class="cs-center">X</td>
+            <td class="cs-right" style="color:#7a00cc;font-weight:bold;">+{{this.plBonus}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{/if}}
+
+    </div>{{!-- /tags tab --}}
+
+    {{!-- ════════════════════════════════════════════════════════
+         ELEMENTS TAB
+         ════════════════════════════════════════════════════════ --}}
+    <div class="tab" data-tab="elements" data-group="primary">
+
+      <div class="cs-section">✨ Element Mastery</div>
+      <table>
+        <thead>
+          <tr><th>Element</th><th>Current / Max</th><th>Progress</th></tr>
+        </thead>
+        <tbody>
+          {{#each elements}}
+          <tr {{#if this.isAffinity}}class="cs-element-affinity"{{/if}}>
+            <td>{{this.name}}{{#if this.isAffinity}} ★{{/if}}</td>
+            <td>{{csNum this.value}} / 10,000</td>
+            <td style="width:180px;">
+              {{{csBar this.value 10000 (or (and this.isAffinity "#3a3acc") "#888") "10px"}}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+    </div>{{!-- /elements tab --}}
+
+    {{!-- ════════════════════════════════════════════════════════
+         SOULS TAB
+         ════════════════════════════════════════════════════════ --}}
+    <div class="tab" data-tab="souls" data-group="primary">
+
+      <div class="cs-section">👻 Souls Absorbed</div>
+      <table>
+        <thead><tr><th>Soul Type</th><th class="cs-right">Count</th></tr></thead>
+        <tbody>
+          {{#each souls}}
+          <tr>
+            <td>{{this.name}}</td>
+            <td class="cs-right">{{csNum this.count}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      {{#if hasArena}}
+      <div class="cs-section">⚔️ Soul Arena Record</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Soul</th>
+            <th class="cs-center">Fought</th>
+            <th class="cs-center">Won</th>
+            <th class="cs-center">Lost</th>
+            <th class="cs-center">Win Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each arenaStats}}
+          <tr>
+            <td>{{this.emoji}} {{this.name}}</td>
+            <td class="cs-center">{{this.fought}}</td>
+            <td class="cs-center">{{this.won}}</td>
+            <td class="cs-center">{{this.lost}}</td>
+            <td class="cs-center {{winClass this.winRate}}">{{this.winRate}}%</td>
+          </tr>
+          {{/each}}
+          <tr class="cs-total">
+            <td><b>Total</b></td>
+            <td class="cs-center"><b>{{totalFought}}</b></td>
+            <td class="cs-center"><b>{{totalWon}}</b></td>
+            <td class="cs-center"><b>{{sub totalFought totalWon}}</b></td>
+            <td class="cs-center {{winClass totalWinRate}}"><b>{{totalWinRate}}%</b></td>
+          </tr>
+        </tbody>
+      </table>
+      {{else}}
+      <div class="cs-note cs-note-info">No soul arena battles recorded yet.</div>
+      {{/if}}
+
+    </div>{{!-- /souls tab --}}
+
+    {{!-- ════════════════════════════════════════════════════════
+         PACT TAB (conditional)
+         ════════════════════════════════════════════════════════ --}}
+    {{#if hasPact}}
+    <div class="tab" data-tab="pact" data-group="primary">
+
+      <div class="cs-section">😈 Devil Pact Record</div>
+
+      <div class="cs-pact-summary">
+        <div class="cs-pact-item">
+          <span class="cs-pact-label">HP/MP Cap</span>
+          <span class="cs-pact-value">{{pactSummary.hpMpMaxCap}}</span>
+        </div>
+        <div class="cs-pact-item">
+          <span class="cs-pact-label">Total Pacts</span>
+          <span class="cs-pact-value">{{pactSummary.totalPacts}}</span>
+        </div>
+        <div class="cs-pact-item">
+          <span class="cs-pact-label">Effective Ascension Cap</span>
+          <span class="cs-pact-value">{{pactSummary.effectiveAscCap}} AP</span>
+        </div>
+      </div>
+
+      <div class="cs-section">Active Pact Flags</div>
+      {{#if (any pactFlags)}}
+      <div style="margin-bottom:10px;">
+        {{#each pactFlags}}
+        <div class="cs-pact-flag" style="color:{{#if this.isBoon}}#1a5c1a{{else}}#8b0000{{/if}};">
+          {{this.label}}
+        </div>
+        {{/each}}
+      </div>
+      {{else}}
+      <div class="cs-note cs-note-info">No permanent pact flags active.</div>
+      {{/if}}
+
+      <div class="cs-section">Pact History</div>
+      {{#if (any pactHistory)}}
+      <table>
+        <thead>
+          <tr>
+            <th class="cs-center">#</th>
+            <th>Date</th>
+            <th>Boon</th>
+            <th>Bane</th>
+            <th>RP Bane</th>
+            <th class="cs-center">Souls</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each pactHistory}}
+          <tr>
+            <td class="cs-center" style="color:#666;">#{{add @index 1}}</td>
+            <td>{{this.date}}</td>
+            <td style="color:#1a5c1a;">{{or this.boon "—"}}</td>
+            <td style="color:#8b0000;">{{or this.bane "—"}}</td>
+            <td style="color:#555;font-style:italic;">{{or this.rpBane "None"}}</td>
+            <td class="cs-center">{{or this.soulMagicUsed 1}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <div class="cs-note cs-note-info">No pacts recorded.</div>
+      {{/if}}
+
+    </div>{{!-- /pact tab --}}
+    {{/if}}
+
+  </section>{{!-- /sheet-body --}}
+  {{/if}}{{!-- noData --}}
+</form>
