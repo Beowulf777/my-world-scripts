@@ -1,0 +1,24 @@
+{
+  "id": "my-world-scripts",
+  "title": "CS World Scripts",
+  "description": "Custom character sheet and inventory system for the campaign.",
+  "version": "2.0.0",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "11.315"
+  },
+  "scripts": [
+    "https://assets.forge-vtt.com/69f12fe1dd42d35dddebbbf9/modules/my-world-scripts/scripts/character-sheet.js"
+  ],
+  "styles": [
+    "https://assets.forge-vtt.com/69f12fe1dd42d35dddebbbf9/modules/my-world-scripts/styles/module.css"
+  ],
+  "authors": [
+    {
+      "name": "GM"
+    }
+  ],
+  "manifest": "https://raw.githubusercontent.com/Beowulf777/my-world-scripts/main/module.json",
+  "download": "https://github.com/Beowulf777/my-world-scripts/archive/refs/tags/v2.0.1.zip"
+  "flags": {}
+}
